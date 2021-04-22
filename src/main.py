@@ -1,4 +1,3 @@
-from typing import Dict
 import argparse
 from os.path import splitext, isfile
 from logzero import logger
@@ -34,28 +33,32 @@ def run_trf(fasta_fname: str, trf_path: str) -> str:
 
 
 def parse_trf(trf_fname: str, unit_seq: str, split_contigs: bool) -> None:
-    out_fname = f"{splitext(trf_fname)[0]}.telomere.bed"
-    logger.info(f"Wrting results to {out_fname}")
+    out_bed = f"{splitext(trf_fname)[0]}.telomere.bed"
+    out_trf = f"{splitext(trf_fname)[0]}.telomere.trf"
+    logger.info(f"Wrting results to {out_trf} and {out_bed}")
     unit_len = len(unit_seq)
     unit_seq = unit_seq.lower()
     r = bs.EdlibRunner(mode="global", revcomp=True, cyclic=True)
-    with open(out_fname, 'w') as g:
-        with open(trf_fname, 'r') as f:
-            for line in f:
-                data = line.strip().split()
-                if line.startswith('@'):
-                    cname = data[0][1:]
-                    if split_contigs:
-                        cname, _offset = cname.split('/')
-                        offset = _offset.split('_')[0]
+    with open(out_trf, 'w') as h:
+        with open(out_bed, 'w') as g:
+            with open(trf_fname, 'r') as f:
+                for line in f:
+                    data = line.strip().split()
+                    if line.startswith('@'):
+                        cname = data[0][1:]
+                        if split_contigs:
+                            cname, _offset = cname.split('/')
+                            offset = _offset.split('_')[0]
+                        else:
+                            offset = 0
+                        h.write(line)
                     else:
-                        offset = 0
-                else:
-                    b, e, _, ncopy = data[:4]
-                    useq = data[13].lower()
-                    if len(useq) == unit_len and r.align(unit_seq, useq).diff == 0.:
-                        b, e = str(offset + int(b)), str(offset + int(e))
-                        g.write('\t'.join([cname, b, e, ncopy]) + '\n')
+                        b, e, _, ncopy = data[:4]
+                        useq = data[13].lower()
+                        if len(useq) == unit_len and r.align(unit_seq, useq).diff == 0.:
+                            b, e = str(offset + int(b)), str(offset + int(e))
+                            g.write('\t'.join([cname, b, e, ncopy]) + '\n')
+                            h.write(line)
 
 
 def main():
