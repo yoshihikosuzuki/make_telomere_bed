@@ -5,12 +5,16 @@ import bits.seq as bs
 import bits.util as bu
 
 
-def split_fasta(fasta_fname: str, size: int = 1000000) -> str:
+def split_fasta(fasta_fname: str,
+                size: int = 1000000,
+                ignore_exist: bool = False) -> str:
     out_fname = f"{splitext(fasta_fname)[0]}.split.fasta"
-    if isfile(out_fname):
-        logger.info(f"Output file ({out_fname}) already exists. Skip splitting contigs.")
+    if not ignore_exist and isfile(out_fname):
+        logger.info(
+            f"Skip splitting contigs because output file ({out_fname}) already exists.")
         return out_fname
-    logger.info(f"Splitting sequences in {fasta_fname} into {size} bp substrings")
+    logger.info(
+        f"Splitting sequences in {fasta_fname} into {size} bp substrings")
     contigs = bs.load_fasta(fasta_fname)
     split_contigs = [bs.FastaRecord(name=f"{contig.name}/{i*size}_{min((i+1)*size,contig.length)}",
                                     seq=seq)
@@ -20,19 +24,25 @@ def split_fasta(fasta_fname: str, size: int = 1000000) -> str:
     return out_fname
 
 
-def run_trf(fasta_fname: str, trf_path: str) -> str:
+def run_trf(fasta_fname: str,
+            trf_path: str = "trf",
+            ignore_exist: bool = False) -> str:
     out_fname = f"{splitext(fasta_fname)[0]}.trf"
-    if isfile(out_fname):
-        logger.info(f"Output file ({out_fname}) already exists. Skip running TRF.")
+    if not ignore_exist and isfile(out_fname):
+        logger.info(
+            f"Skip running TRF because output file ({out_fname}) already exists.")
         return out_fname
     command = f"{trf_path} {fasta_fname} 2 7 7 80 10 50 50 -h -ngs > {out_fname}"
     logger.info(f"Running TRF: $ {command}")
-    logger.info(f"NOTE: If TRF takes forever, stop and run this program again with `-s` option.")
+    logger.info(
+        f"NOTE: If TRF takes forever, stop and run this program again with `-s` option.")
     bu.run_command(command)
     return out_fname
 
 
-def parse_trf(trf_fname: str, unit_seq: str, split_contigs: bool) -> None:
+def parse_trf(trf_fname: str,
+              unit_seq: str,
+              split_contigs: bool) -> None:
     out_bed = f"{splitext(trf_fname)[0]}.telomere.bed"
     out_trf = f"{splitext(trf_fname)[0]}.telomere.trf"
     logger.info(f"Wrting results to {out_trf} and {out_bed}")
@@ -64,8 +74,8 @@ def parse_trf(trf_fname: str, unit_seq: str, split_contigs: bool) -> None:
 def main():
     args = parse_args()
     if args.split_contigs:
-        args.contig_fasta = split_fasta(args.contig_fasta)
-    trf_fname = run_trf(args.contig_fasta, args.trf_path)
+        args.contig_fasta = split_fasta(args.contig_fasta, ignore_exist=args.ignore_exist)
+    trf_fname = run_trf(args.contig_fasta, args.trf_path, args.ignore_exist)
     parse_trf(trf_fname, args.unit_sequence, args.split_contigs)
     logger.info("Finished")
 
@@ -97,6 +107,8 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Ignore existing files and generate them again (except the final .bed file). [False]")
     args = parser.parse_args()
+    assert isfile(args.contig_fasta), f"{args.contig_fasta} does not exist"
+    assert 2 <= len(unit_sequence) <= 50, "Unit sequence must be from 2-50 bp"
     return args
 
 
