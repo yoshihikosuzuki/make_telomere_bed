@@ -76,8 +76,12 @@ def main():
     if args.split_contigs:
         args.contig_fasta = split_fasta(args.contig_fasta,
                                         ignore_exist=args.ignore_exist)
-    trf_fname = run_trf(args.contig_fasta, args.trf_path, args.ignore_exist)
-    parse_trf(trf_fname, args.unit_sequence, args.split_contigs)
+    trf_fname = run_trf(args.contig_fasta,
+                        args.trf_path,
+                        args.ignore_exist)
+    parse_trf(trf_fname,
+              args.unit_sequence,
+              args.split_contigs)
     logger.info("Finished")
 
 
@@ -101,12 +105,12 @@ def parse_args() -> argparse.Namespace:
         "-s",
         "--split_contigs",
         action="store_true",
-        help="Split contigs in `contig_fasta` into 1 Mbp subsequences. TRF sometimes freezes for long contigs. Use this option if TRF takes forever. [False]")
+        help="Use this option if TRF takes forever. TRF sometimes freezes for long contigs, and if this is specified, then split contigs in `contig_fasta` into 1 Mbp substrings.  [False]")
     parser.add_argument(
         "-I",
         "--ignore_exist",
         action="store_true",
-        help="Ignore existing files and generate them again (except the final .bed file). [False]")
+        help="Ignore existing files and generate them again. The final .bed file is always generated anyway. [False]")
     args = parser.parse_args()
     assert isfile(args.contig_fasta), \
         f"{args.contig_fasta} does not exist"
