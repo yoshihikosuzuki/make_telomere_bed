@@ -7,7 +7,7 @@ from logzero import logger
 
 
 def split_fasta(
-    fasta_fname: str, size: int = 1000000, ignore_exist: bool = False
+    fasta_fname: str, size: int = 10000000, ignore_exist: bool = False
 ) -> str:
     out_fname = f"{splitext(fasta_fname)[0]}.split.fasta"
     if not ignore_exist and isfile(out_fname):
@@ -106,7 +106,7 @@ def parse_args() -> argparse.Namespace:
         "-s",
         "--split_contigs",
         action="store_true",
-        help="Use this option if TRF takes forever. TRF sometimes freezes for long contigs, and if this is specified, then split contigs in `contig_fasta` into 1 Mbp substrings.  [False]",
+        help="Use this option if TRF takes forever. TRF sometimes freezes for long contigs, and if this is specified, then split contigs in `contig_fasta` into 10 Mbp substrings.  [False]",
     )
     parser.add_argument(
         "-I",
