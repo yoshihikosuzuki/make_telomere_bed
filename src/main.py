@@ -7,7 +7,7 @@ from logzero import logger
 
 
 def split_fasta(
-    fasta_fname: str, size: int = 10000000, ignore_exist: bool = False
+    fasta_fname: str, size: int = 1000000, ignore_exist: bool = False
 ) -> str:
     out_fname = f"{splitext(fasta_fname)[0]}.split.fasta"
     if not ignore_exist and isfile(out_fname):
